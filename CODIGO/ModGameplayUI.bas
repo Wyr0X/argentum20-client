@@ -179,6 +179,7 @@ On Error GoTo OnClick_Err
                             Call WriteWorkLeftClick(tX, tY, UsingSkill)
                             Call FormParser.Parse_Form(GetGameplayForm)
 
+                            CastleHologramPosMap = 0
                             If CursoresGraficos = 0 Then
                                 GetGameplayForm.MousePointer = vbDefault
                             End If

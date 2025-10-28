@@ -71,6 +71,13 @@ Public Sub CambioDeArea(ByVal x As Byte, ByVal y As Byte)
     
     Call RefreshAllChars
 
+    ' Remove castle
+    If ShowCastle = e_ShowCastle.CastleExterior Then
+        If CastlePosX < MinLimiteX Or CastlePosX > MaxLimiteX Or CastlePosY < MinLimiteY Or CastlePosY > MaxLimiteY Then
+            MapData(CastlePosX + CastleGrhOffsetX, CastlePosY + CastleGrhOffsetY).Graphic(3).GrhIndex = 0
+            ShowCastle = e_ShowCastle.DontShow
+        End If
+    End If
     
     Exit Sub
 

@@ -729,6 +729,12 @@ Sub RenderScreen(ByVal center_x As Integer, ByVal center_y As Integer, ByVal Pix
     End If
     
     Call renderCooldowns(710 + gameplay_render_offset.x, 25 + gameplay_render_offset.y)
+
+    If ShowCastle <> e_ShowCastle.DontShow Then
+        Call DrawCastleBar(PixelOffsetX, PixelOffsetY, center_x, center_y)
+    ElseIf CastleHologramPosMap = UserMap Then
+        Call DrawCastleHologram(PixelOffsetX, PixelOffsetY, center_x, center_y)
+    End If
     
     If InvasionActual Then
         
@@ -817,6 +823,70 @@ RenderScreen_Err:
     Call RegistrarError(Err.Number, Err.Description, "TileEngine_RenderScreen.RenderScreen", Erl)
     Resume Next
     
+End Sub
+
+Private Sub DrawCastleBar(ByVal PixelOffsetX As Integer, ByVal PixelOffsetY As Integer, ByVal center_x As Integer, ByVal center_y As Integer)
+    Dim CastleBarX As Integer: CastleBarX = (MainViewWidth - GrhData(13931).pixelWidth) * 0.5 + 15
+    Dim CastleBarY As Integer: CastleBarY = MainViewHeight - GrhData(13931).pixelHeight - 28
+    
+    If Not HideHotkeys Then CastleBarY = CastleBarY - 30
+
+    Dim CastleBarAlpha As Byte
+    If MouseX > CastleBarX - 20 And MouseX < CastleBarX + GrhData(13931).pixelWidth And _
+        MouseY > CastleBarY - 10 And MouseY < CastleBarY + GrhData(13931).pixelHeight + 10 Then
+        CastleBarAlpha = 100
+    Else
+        CastleBarAlpha = 255
+    End If
+
+    Dim CastleBarBorderColor(3) As RGBA
+    Call Copy_RGBAList_WithAlpha(CastleBarBorderColor, COLOR_WHITE, CastleBarAlpha)
+    Call Copy_RGBAList_WithAlpha(CastleBarColor, CastleBarColor, CastleBarAlpha)
+
+    Call Draw_GrhColor(13931, CastleBarX, CastleBarY, CastleBarBorderColor)
+    With GrhData(13933)
+        Call Batch_Textured_Box(CastleBarX + 30, CastleBarY, (.pixelWidth - 53) * CastleHP, .pixelHeight, .sX + 30, .sY, .FileNum, CastleBarColor)
+    End With
+    Call Draw_GrhColor(13932, CastleBarX, CastleBarY, CastleBarBorderColor)
+    Call Draw_GrhColor(13934, CastleBarX - 21, CastleBarY - 16, CastleBarBorderColor)
+
+    If Abs(CastleTargetHP - CastleHP) * (GrhData(13933).pixelWidth - 53) > 1 Then
+        CastleHP = CastleHP + (CastleTargetHP - CastleHP) * 0.15 * timerTicksPerFrame
+    Else
+        CastleHP = CastleTargetHP
+    End If
+
+    If ShowCastle = e_ShowCastle.CastleInterior Then Exit Sub
+    
+    Dim IconX As Integer
+    Dim IconY As Integer
+    IconX = HalfWindowTileWidth * TilePixelWidth + PixelOffsetX
+    IconY = HalfWindowTileHeight * TilePixelWidth + PixelOffsetY
+    IconX = IconX + (CastleHologramPosX + CastlePosX - center_x + IIf(CastleTiledEven, 1, 0.5)) * TilePixelWidth
+    IconY = IconY + (CastleHologramPosY + CastlePosY - center_y) * TilePixelHeight - 100
+    Dim GrhIcon As grh
+    Call InitGrh(GrhIcon, 57440, 1)
+    Call Draw_Grh(GrhIcon, IconX, IconY, 1, 1, COLOR_WHITE)
+End Sub
+
+Private Sub DrawCastleHologram(ByVal PixelOffsetX As Integer, ByVal PixelOffsetY As Integer, ByVal center_x As Integer, ByVal center_y As Integer)
+    Dim HologramX As Integer
+    Dim HologramY As Integer
+    HologramX = (HalfWindowTileWidth - GrhData(CastleHologramGrhIndex).TileWidth / 2 + 0.5) * TilePixelWidth + PixelOffsetX
+    HologramY = (HalfWindowTileHeight + 1) * TilePixelWidth + PixelOffsetY - GrhData(CastleHologramGrhIndex).pixelHeight
+    HologramX = HologramX + (CastleHologramPosX + CastleHologramGrhOffsetX - center_x) * TilePixelWidth
+    HologramY = HologramY + (CastleHologramPosY + CastleHologramGrhOffsetY - center_y) * TilePixelHeight
+
+    Dim HologramColor(3) As RGBA
+    Dim AlphaModulation As Single: AlphaModulation = Sin((FrameTime Mod 31415) * 0.003) ^ 2
+    If tX >= CastleHologramPosX - (CastleHologramWidth - 1) \ 2 And tX <= CastleHologramPosX + CastleHologramWidth \ 2 And _
+        tY > CastleHologramPosY - CastleHologramHeight And tY <= CastleHologramPosY Then
+        Call RGBAList(HologramColor, 137, 243, 54, AlphaModulation * 30 + 170)
+    Else
+        Call Copy_RGBAList_WithAlpha(HologramColor, COLOR_WHITE, AlphaModulation * 100 + 100)
+    End If
+    
+    Call Draw_GrhColor(CastleHologramGrhIndex, HologramX, HologramY, HologramColor)
 End Sub
 
 Private Sub WorldToScreen(ByRef world As Vector2, ByRef screen As Vector2, ByVal screenX As Integer, ByVal screenY As Integer, ByVal tilesOffsetX As Integer, ByVal tilesOffsetY As Integer)

@@ -2113,6 +2113,8 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
                 Call HandleReqDebugCmd(ArgumentosAll, CantidadArgumentos)
             Case "/FEATURETOGGLE"
                 Call HandleFeatureToggle(ArgumentosAll, CantidadArgumentos)
+            Case "/IRCASTILLO", "/GOCASTLE"
+                Call WriteWarpToCastle
             Case Else
                 Call ShowConsoleMsg(JsonLanguage.Item("MENSAJE_COMANDO_INVALIDO"))
 

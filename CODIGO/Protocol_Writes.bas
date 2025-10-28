@@ -6723,3 +6723,12 @@ WriteAntiCheatMessage_Err:
         Call RegistrarError(Err.Number, Err.Description, "Argentum20.Protocol_Writes.WriteAntiCheatMessage", Erl)
 End Sub
 
+Public Sub WriteWarpToCastle()
+     On Error GoTo WriteWarpToCastle_Err
+100     Call Writer.WriteInt16(ClientPacketID.eWarpToCastle)
+102     Call modNetwork.send(Writer)
+        Exit Sub
+WriteWarpToCastle_Err:
+        Call Writer.Clear
+        Call RegistrarError(Err.Number, Err.Description, "Argentum20.Protocol_Writes.WriteWarpToCastle", Erl)
+End Sub

@@ -549,7 +549,8 @@ Public Const FLAG_AGUA               As Integer = &H20
 Public Const FLAG_ARBOL              As Integer = &H40
 Public Const FLAG_COSTA              As Integer = &H80
 Public Const FLAG_LAVA               As Integer = &H100
-Public Const PRIMER_TRIGGER_TECHO    As Byte = 19
+Public Const FIRST_TRIGGER_ROOF      As Byte = 19
+Public Const LAST_TRIGGER_ROOF       As Byte = 199
 Public Const FOgata                  As Integer = 1521
 Public Const INV_FLAG_AGUA           As Single = 1 / FLAG_AGUA
 Public Const INV_FLAG_LAVA           As Single = 1 / FLAG_LAVA
@@ -851,6 +852,20 @@ Type tModRaza
     Carisma As Integer
 End Type
 
+Enum e_ShowCastle
+    DontShow = 0
+    CastleExterior
+    CastleInterior
+End Enum
+
+Enum e_CastleState
+    Built = 0
+    Building
+    Upgrading
+    Destroyed
+    Rebuilding
+End Enum
+
 Public ModRaza(1 To NUMRAZAS)            As tModRaza
 Public ListaCiudades(1 To NUMCIUDADES)   As String
 Public UserSkills(1 To NUMSKILLS)        As Byte
@@ -870,6 +885,25 @@ Public UsingSkill                        As Integer
 Public InvasionActual                    As Byte
 Public InvasionPorcentajeVida            As Byte
 Public InvasionPorcentajeTiempo          As Byte
+
+Public CastleHologramPosMap              As Integer
+Public CastleHologramPosX                As Integer
+Public CastleHologramPosY                As Integer
+Public CastleHologramWidth               As Byte
+Public CastleHologramHeight              As Byte
+Public CastleHologramGrhIndex            As Long
+Public CastleHologramGrhOffsetX          As Integer
+Public CastleHologramGrhOffsetY          As Integer
+
+Public ShowCastle                        As e_ShowCastle
+Public CastlePosX                        As Integer
+Public CastlePosY                        As Integer
+Public CastleHP                          As Single
+Public CastleTargetHP                    As Single
+Public CastleBarColor(3)                 As RGBA
+Public CastleGrhOffsetX                  As Integer
+Public CastleGrhOffsetY                  As Integer
+Public CastleTiledEven                   As Boolean
 
 Public Enum E_MODO
     Normal = 1
@@ -949,6 +983,9 @@ Public Enum eTrigger
     VALIDOPUENTE = 17
     NADOCOMBINADO = 18
     CARCEL = 19
+    CASTLE = 200        ' Using big numbers to avoid collisions with roof triggers
+    CASTLE_CENTER = 201
+    CASTLE_EXIT = 202
 End Enum
 
 'Server stuff

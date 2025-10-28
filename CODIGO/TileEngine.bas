@@ -574,42 +574,45 @@ Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPo
 Public keysMovementPressedQueue As clsArrayList
 
 Public Sub Init_TileEngine()
-    
+
     On Error GoTo Init_TileEngine_Err
-    
-    
+
     'Esto es para el movimiento suave de pjs, para que el pj termine de hacer el movimiento antes de empezar otro
     Set keysMovementPressedQueue = New clsArrayList
     Call keysMovementPressedQueue.Initialize(1, 4)
-    
-    HalfWindowTileHeight = (frmMain.renderer.ScaleHeight / 32) \ 2
-    HalfWindowTileWidth = (frmMain.renderer.ScaleWidth / 32) \ 2
-    
+
+    MainViewWidth = frmMain.renderer.ScaleWidth
+    MainViewHeight = frmMain.renderer.ScaleHeight
+
+    WindowTileWidth = MainViewWidth \ 32
+    WindowTileHeight = MainViewHeight \ 32
+
+    HalfWindowTileWidth = (MainViewWidth / 32) \ 2
+    HalfWindowTileHeight = (MainViewHeight / 32) \ 2
+
     HalfConnectTileHeight = (frmConnect.render.ScaleHeight / 32) \ 2
     HalfConnectTileWidth = (frmConnect.render.ScaleWidth / 32) \ 2
 
     TileBufferSizeX = 14
     TileBufferSizeY = 18
-    
+
     TileBufferPixelOffsetX = -TileBufferSizeX * TilePixelWidth
     TileBufferPixelOffsetY = -TileBufferSizeY * TilePixelHeight
 
     ReDim MapData(XMinMapSize To XMaxMapSize, YMinMapSize To YMaxMapSize) As MapBlock
-    
-    
-    MinXBorder = XMinMapSize + (frmMain.renderer.ScaleWidth \ 64)
-    MaxXBorder = XMaxMapSize - (frmMain.renderer.ScaleWidth \ 64)
-    MinYBorder = YMinMapSize + (frmMain.renderer.ScaleHeight \ 64)
-    MaxYBorder = YMaxMapSize - (frmMain.renderer.ScaleHeight \ 64)
+
+    MinXBorder = XMinMapSize + (MainViewWidth \ 64)
+    MaxXBorder = XMaxMapSize - (MainViewWidth \ 64)
+    MinYBorder = YMinMapSize + (MainViewHeight \ 64)
+    MaxYBorder = YMaxMapSize - (MainViewHeight \ 64)
     MinYBorder = MinYBorder
 
-    
     Exit Sub
 
 Init_TileEngine_Err:
     Call RegistrarError(Err.Number, Err.Description, "TileEngine.Init_TileEngine", Erl)
     Resume Next
-    
+
 End Sub
 
 Sub ConvertCPtoTP(ByVal viewPortX As Integer, ByVal viewPortY As Integer, ByRef tX As Byte, ByRef tY As Byte)
@@ -934,7 +937,7 @@ Public Function HayTecho(ByVal x As Integer, ByVal y As Integer) As Boolean
     On Error GoTo HayTecho_Err
 
     With MapData(x, y)
-        HayTecho = .Trigger >= PRIMER_TRIGGER_TECHO Or .Trigger = eTrigger.BAJOTECHO Or .Trigger = eTrigger.ZONASEGURA Or .Trigger = eTrigger.NADOBAJOTECHO
+        HayTecho = (.Trigger >= FIRST_TRIGGER_ROOF And .Trigger <= LAST_TRIGGER_ROOF) Or .Trigger = eTrigger.BAJOTECHO Or .Trigger = eTrigger.ZONASEGURA Or .Trigger = eTrigger.NADOBAJOTECHO
     End With
 
     Exit Function

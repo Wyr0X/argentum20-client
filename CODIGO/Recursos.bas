@@ -1053,6 +1053,8 @@ Public Sub CargarMapa(ByVal map As Integer)
     If UserPos.y = 0 Then UserPos.y = 10
     MapData(UserPos.x, UserPos.y).charindex = 0
     
+    ShowCastle = e_ShowCastle.DontShow
+    
     For i = 1 To LastChar
         'If charlist(i).active = 1 Then
         Call EraseChar(i)

@@ -490,6 +490,14 @@ On Error GoTo HandleIncomingData_Err
             Call HandleAntiCheatStartSession
         Case ServerPacketID.eReportLobbyList
             Call HandleReportLobbyList
+        Case ServerPacketID.eCastleBuildPosition
+            Call HandleCastleBuildPosition
+        Case ServerPacketID.eShowCastle
+            Call HandleShowCastle
+        Case ServerPacketID.eShowCastleInside
+            Call HandleShowCastleInside
+        Case ServerPacketID.eUpdateCastleHP
+            Call HandleUpdateCastleHP
         #If PYMMO = 0 Then
         Case ServerPacketID.eAccountCharacterList
             Call HandleAccountCharacterList
@@ -954,7 +962,11 @@ Public Sub HandleDisconnect()
     Next i
     Call EndAntiCheatSession
     Call ClearHotkeys
-        
+    
+    ' Remove castle and castle hologram
+    CastleHologramPosMap = 0
+    ShowCastle = e_ShowCastle.DontShow
+
     'Unload all forms except frmMain and frmConnect
     Dim Frm As Form
     
@@ -2467,7 +2479,16 @@ Private Sub HandleConsoleMessage()
                 Hechizo = ReadField(2, chat, Asc("*"))
                 userName = ReadField(3, chat, Asc("*"))
                 chat = userName & " " & HechizoData(Hechizo).TargetMsg
-                    
+
+            Case "HecMSGC"
+                If language = Spanish Then
+                    Hechizo = ReadField(2, chat, Asc("*"))
+                    chat = HechizoData(Hechizo).HechizeroMsg & " el castillo."
+                Else
+                    Hechizo = ReadField(2, chat, Asc("*"))
+                    chat = HechizoData(Hechizo).HechizeroMsg & " the castle."
+                End If
+
             Case "EXP"
                 Valor = ReadField(2, chat, Asc("*"))
                 'chat = "Has ganado " & valor & " puntos de experiencia."
@@ -7828,6 +7849,84 @@ On Error GoTo HandleReportLobbyList_Err
     Exit Sub
 HandleReportLobbyList_Err:
     Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleDebugResponse", Erl)
+End Sub
+
+Public Sub HandleCastleBuildPosition()
+    On Error GoTo HandleCastleBuildPosition_Err
+
+    CastleHologramPosX = Reader.ReadInt16
+    CastleHologramPosY = Reader.ReadInt16
+    CastleHologramGrhIndex = Reader.ReadInt32
+    CastleHologramGrhOffsetX = Reader.ReadInt16
+    CastleHologramGrhOffsetY = Reader.ReadInt16
+    CastleHologramWidth = Reader.ReadInt8
+    CastleHologramHeight = Reader.ReadInt8
+    CastleHologramPosMap = UserMap
+
+    Exit Sub
+HandleCastleBuildPosition_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleCastleBuildPosition", Erl)
+End Sub
+
+Public Sub HandleShowCastle()
+    On Error GoTo HandleShowCastle_Err
+    
+    Dim CastleGrhIndex As Long
+    Dim status As e_CastleState
+
+    CastlePosX = Reader.ReadInt16
+    CastlePosY = Reader.ReadInt16
+    status = Reader.ReadInt8
+    CastleGrhIndex = Reader.ReadInt32
+    CastleGrhOffsetX = Reader.ReadInt16
+    CastleGrhOffsetY = Reader.ReadInt16
+    CastleTiledEven = Reader.ReadBool
+    CastleHP = Reader.ReadInt8 / 100
+    CastleTargetHP = CastleHP
+    ShowCastle = e_ShowCastle.CastleExterior
+    
+    Select Case status
+        Case e_CastleState.Built
+            ' Green
+            Call RGBAList(CastleBarColor, 71, 144, 56)
+        Case e_CastleState.Building, e_CastleState.Rebuilding, e_CastleState.Upgrading
+            ' Blue
+            Call RGBAList(CastleBarColor, 0, 166, 215)
+        Case e_CastleState.Destroyed
+            ' Red
+            Call RGBAList(CastleBarColor, 130, 0, 0)
+    End Select
+
+    Call InitGrh(MapData(CastlePosX + CastleGrhOffsetX, CastlePosY + CastleGrhOffsetY).Graphic(3), CastleGrhIndex)
+
+    Exit Sub
+HandleShowCastle_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleShowCastle", Erl)
+End Sub
+
+Public Sub HandleShowCastleInside()
+    On Error GoTo HandleShowCastleInside_Err
+
+    CastleHP = Reader.ReadInt8 / 100
+    CastleTargetHP = CastleHP
+    ShowCastle = e_ShowCastle.CastleInterior
+
+    ' Green HP bar
+    Call RGBAList(CastleBarColor, 71, 144, 56)
+
+    Exit Sub
+HandleShowCastleInside_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleShowCastleInside", Erl)
+End Sub
+
+Public Sub HandleUpdateCastleHP()
+    On Error GoTo HandleUpdateCastleHP_Err
+
+    CastleTargetHP = Reader.ReadInt8 / 100
+
+    Exit Sub
+HandleUpdateCastleHP_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleUpdateCastleHP", Erl)
 End Sub
 
 #If PYMMO = 0 Then
